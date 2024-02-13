@@ -4,11 +4,11 @@ import interactionPlugin from '@fullcalendar/interaction'
 import FullCalendar from "@fullcalendar/react";
 import {myResources,myEvents} from "../utils/data";
 const MyCalendar = () => {
-  return (
+    return (
       <div id='calendar'>
           <FullCalendar
               plugins={[resourceTimelinePlugin, interactionPlugin]}
-              timeZone='UTC '
+              timeZone='UTC'
               aspectRatio={1.5}
               initialView={'resourceTimelineDay'}
               headerToolbar={{
