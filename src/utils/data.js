@@ -1,4 +1,4 @@
-const myResources = [
+export const myResources = [
     {
         "id": "a",
         "title": "Auditorium A"
@@ -118,4 +118,35 @@ const myResources = [
     }
 ]
 
-export default myResources
+export const myEvents = [
+    {
+        "resourceId": "d",
+        "title": "event 1",
+        "start": "2024-02-12",
+        "end": "2024-02-14"
+    },
+    {
+        "resourceId": "c",
+        "title": "event 3",
+        "start": "2024-02-13T12:00:00+00:00",
+        "end": "2024-02-14T06:00:00+00:00"
+    },
+    {
+        "resourceId": "f",
+        "title": "event 4",
+        "start": "2024-02-13T07:30:00+00:00",
+        "end": "2024-02-13T09:30:00+00:00"
+    },
+    {
+        "resourceId": "b",
+        "title": "event 5",
+        "start": "2024-02-13T10:00:00+00:00",
+        "end": "2024-02-13T15:00:00+00:00"
+    },
+    {
+        "resourceId": "e",
+        "title": "event 2",
+        "start": "2024-02-13T09:00:00+00:00",
+        "end": "2024-02-13T14:00:00+00:00"
+    }
+]
