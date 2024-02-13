@@ -7,12 +7,12 @@ const MyCalendar = () => {
   return (
       <div id='calendar'>
           <FullCalendar
-              plugins={[resourceTimelinePlugin,interactionPlugin]}
-              timeZone='UTC'
+              plugins={[resourceTimelinePlugin, interactionPlugin]}
+              timeZone='UTC '
               aspectRatio={1.5}
               initialView={'resourceTimelineDay'}
               headerToolbar={{
-                  left:'prev,next',
+                  left: 'prev,next',
                   center: 'title',
                   right: 'resourceTimelineDay,resourceTimelineWeek,resourceTimelineMonth'
               }}
