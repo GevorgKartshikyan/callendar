@@ -345,6 +345,9 @@ const MyCalendar = () => {
     return (<>
             <div id='calendar'>
                 <FullCalendar
+                    slotLabelFormat={{
+                        weekday:"short",
+                    }}
                     ref={calendarRef}
                     plugins={[resourceTimelinePlugin, dayGridPlugin]}
                     timeZone='UTC'
