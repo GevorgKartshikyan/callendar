@@ -1,10 +1,104 @@
 #calendar {
-  max-width: 1100px;
+  max-width: 1700px;
   margin: 40px auto;
 }
 
 .fc-license-message {
   display: none !important;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+.modal {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 300px;
+  min-height: 200px;
+}
+
+.modal-content {
+  z-index: 100;
+}
+
+.option, select {
+  background-color: #f0f0f0;
+  color: #333;
+  font-size: 16px;
+}
+
+select {
+  padding: 10px;
+}
+
+.selected-days {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.selected-day-block {
+  background: #ccc;
+  margin: 2px;
+  outline: none;
+  border: none;
+  padding: 6px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.delet-btn {
+  border-right: 1px solid gray;
+  padding-right: 6px;
+  cursor: pointer;
+}
+
+.save-close-btn {
+  padding: 10px 20px;
+  background: #5CB85C;
+  cursor: pointer;
+  color: white;
+  border: none;
+  outline: none;
+}
+
+.btns-block {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+  gap: 10px;
+}
+
+.custom-event {
+  cursor: pointer;
+  border: none;
+}
+
+.text-area {
+  width: 542px;
+  height: 67px;
+}
+
+.fc-h-event {
+  border: none !important;
+  background: none;
+  padding: 0;
+}
+
+.fc-direction-ltr .fc-timeline-event.fc-event-end, .fc-direction-ltr .fc-timeline-more-link {
+  margin-right: 0;
 }
 
 /*# sourceMappingURL=style.css.map */
