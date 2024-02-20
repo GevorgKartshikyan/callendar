@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 
-function AddAttendedModal({onAttend,setAttendedModal}) {
+function AddAttendedModal({handleAddEvent,closeModal}) {
     const [inputText,setInputText]=useState('')
-    const [attended , setAttended] = useState('no')
+    const [attended , setAttended] = useState('yes')
 
     return (
         <div className='modal' onClick={(e) => e.stopPropagation()}>
@@ -11,13 +11,12 @@ function AddAttendedModal({onAttend,setAttendedModal}) {
                     <textarea value={inputText} onChange={(e)=>setInputText(e.target.value)} placeholder='Մեկնաբանություն' className='text-area'/>
                 </div>
                 <select onChange={(e)=>setAttended(e.target.value)} name="" id="">
-                    <option value=''>Վճարված դաս</option>
-                    <option value='yes'>Այո՛</option>
-                    <option value='no'>Ոչ</option>
+                    <option value='yes'>Վճարված դաս</option>
+                    <option value='no'>Չ՛վճարված դաս</option>
                 </select>
                 <div className='btns-block'>
-                    <button onClick={()=>onAttend(inputText,attended)} className='save-close-btn'>Ավելացնել</button>
-                    <button onClick={()=>setAttendedModal(false)} style={{background: '#D9534F'}} className='save-close-btn'>Փակել</button>
+                    <button onClick={()=>handleAddEvent(inputText,attended)} className='save-close-btn'>Ավելացնել</button>
+                    <button onClick={closeModal} style={{background: '#D9534F'}} className='save-close-btn'>Փակել</button>
                 </div>
             </div>
         </div>

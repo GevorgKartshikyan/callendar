@@ -9,8 +9,13 @@ import AddAttendedModal from "./AddAttendedModal";
 import {v4 as uuidv4} from 'uuid';
 import renderEventContent from "./EventRender";
 import DeleteEventModal from "./DeleteEventModal";
+import interactionPlugin from '@fullcalendar/interaction'
 
 const MyCalendar = () => {
+    const [selectedDaysRender, setSelectedDaysRender] = useState([])
+    const [selectedResources ,setSelectedResources] = useState([])
+    const [eventAddModal, setEventAddModal] = useState('')
+    const [eventDay, setEventDay] = useState('')
     const resourceAreaColumns = [
         {
             id: 'day',
@@ -25,6 +30,7 @@ const MyCalendar = () => {
                     onClick={() => {
                         const {resource} = component
                         setResourceId(resource._resource.id)
+                        setEventAddModal(true)
                     }}
                     style={{
                         width: 20,
@@ -87,109 +93,111 @@ const MyCalendar = () => {
         month: new Date().getMonth() + 1, year: new Date().getFullYear()
     })
     const [resourceId, setResourceId] = useState(null)
-    const [resources, setResources] = useState([[{
-        id: 1,
-        courseId: 1,
-        name: 'Գագիկ Պողոսյան',
-        course: '',
-        paid: '',
-        courseRemaining: '',
-        teacherMoney: '',
-        pricePerLesson: 1500,
-        courseConducted: 0,
-        price: '',
-    },
-        {
-            id: 2,
-            courseId: 2,
-            name: 'Արամ Գրիգորյան',
-            course: '',
-            paid: '',
-            courseRemaining: '',
-            teacherMoney: '',
-            pricePerLesson: 2000,
-            courseConducted: 0,
-            price: ''
-        },
-        {
-            id: 3,
-            courseId: 3,
-            name: 'Նարեկ Աբրահամյան',
-            course: '',
-            paid: '',
-            courseRemaining: '',
-            teacherMoney: '',
-            pricePerLesson: 1800,
-            courseConducted: 0,
-            price: ''
-        },
-        {
-            id: 4,
-            courseId: 4,
-            name: 'Լիլիթ Մարտիրոսյան',
-            course: '',
-            paid: '',
-            courseRemaining: '',
-            teacherMoney: '',
-            pricePerLesson: 2200,
-            courseConducted: 0,
-            price: ''
-        },
-        {
-            id: 5,
-            courseId: 5,
-            name: 'Վարդան Արշակյան',
-            course: '',
-            paid: '',
-            courseRemaining: '',
-            teacherMoney: '',
-            pricePerLesson: 1700,
-            courseConducted: 0,
-            price: ''
-        },
-        {
-            id: 'total',
-            name: 'Ընդհանուր',
-            course: 0,
-            paid: 0,
-            courseRemaining: 0,
-            teacherMoney: 0,
-            courseConducted: 0,
-            price: 0
-        }],
-        [{
-            id: 6,
-            courseId: 6,
-            name: 'Գեւորգ Մաթեւոսյան',
-            course: '',
-            paid: '',
-            courseRemaining: '',
-            teacherMoney: '',
-            pricePerLesson: 4260,
-            courseConducted: 0,
-            price: ''
-        },
-            {
-                id: 7,
-                courseId: 7,
-                name: 'Սամվել Սիմոնյան',
+    const [resources, setResources] = useState(
+        [
+            [{
+                id: 1,
+                courseId: 1,
+                name: 'Գագիկ Պողոսյան',
                 course: '',
                 paid: '',
                 courseRemaining: '',
                 teacherMoney: '',
-                pricePerLesson: 2250,
+                pricePerLesson: 1500,
+                courseConducted: 0,
+                price: '',
+            },
+                {
+                    id: 2,
+                    courseId: 2,
+                    name: 'Արամ Գրիգորյան',
+                    course: '',
+                    paid: '',
+                    courseRemaining: '',
+                    teacherMoney: '',
+                    pricePerLesson: 2000,
+                    courseConducted: 0,
+                    price: ''
+                },
+                {
+                    id: 3,
+                    courseId: 3,
+                    name: 'Նարեկ Աբրահամյան',
+                    course: '',
+                    paid: '',
+                    courseRemaining: '',
+                    teacherMoney: '',
+                    pricePerLesson: 1800,
+                    courseConducted: 0,
+                    price: ''
+                },
+                {
+                    id: 4,
+                    courseId: 4,
+                    name: 'Լիլիթ Մարտիրոսյան',
+                    course: '',
+                    paid: '',
+                    courseRemaining: '',
+                    teacherMoney: '',
+                    pricePerLesson: 2200,
+                    courseConducted: 0,
+                    price: ''
+                },
+                {
+                    id: 5,
+                    courseId: 5,
+                    name: 'Վարդան Արշակյան',
+                    course: '',
+                    paid: '',
+                    courseRemaining: '',
+                    teacherMoney: '',
+                    pricePerLesson: 1700,
+                    courseConducted: 0,
+                    price: ''
+                },
+                {
+                    id: 'total',
+                    name: 'Ընդհանուր',
+                    course: 0,
+                    paid: 0,
+                    courseRemaining: 0,
+                    teacherMoney: 0,
+                    courseConducted: 0,
+                    price: 0
+                }],
+            [{
+                id: 6,
+                courseId: 6,
+                name: 'Գեւորգ Մաթեւոսյան',
+                course: '',
+                paid: '',
+                courseRemaining: '',
+                teacherMoney: '',
+                pricePerLesson: 4260,
                 courseConducted: 0,
                 price: ''
-            }, {
-            id: 'total',
-            name: 'Ընդհանուր',
-            course: 5,
-            paid: 5,
-            courseRemaining: 0,
-            teacherMoney: 0,
-            courseConducted: 0,
-            price: 0
-        }]])
+            },
+                {
+                    id: 7,
+                    courseId: 7,
+                    name: 'Սամվել Սիմոնյան',
+                    course: '',
+                    paid: '',
+                    courseRemaining: '',
+                    teacherMoney: '',
+                    pricePerLesson: 2250,
+                    courseConducted: 0,
+                    price: ''
+                }, {
+                id: 'total',
+                name: 'Ընդհանուր',
+                course: 5,
+                paid: 5,
+                courseRemaining: 0,
+                teacherMoney: 0,
+                courseConducted: 0,
+                price: 0
+            }]])
     const [selectedDays, setSelectedDays] = useState([])
     const [events, setEvents] = useState([])
     const [attendedModal, setAttendedModal] = useState(false)
@@ -203,25 +211,17 @@ const MyCalendar = () => {
                 const updatedResources = innerArray.map(resource => {
                     const course = courses.find(course => course.id === resource.courseId);
                     if (course) {
-                        count ++
+                        count++
                         const eventsCount = events.filter(event => event.resourceId == resource.id);
-                        let remaining = 0;
-                        let courseConducted = 0
-                        for (let i = 0; i < eventsCount.length - 1; i++) {
-                            if (eventsCount[i].attended) {
-                                remaining += 1
-                                courseConducted += 1
-                            }
-                        }
                         const teacherMoney = course.teachMoney * eventsCount.length;
                         return {
                             ...resource,
                             course: course.title,
                             paid: course.paid ? '✔' : '✕',
-                            courseRemaining: course.quantity - remaining,
+                            courseRemaining: course.quantity - eventsCount.length,
                             teacherMoney: teacherMoney,
-                            courseConducted: courseConducted,
-                            price: resource.pricePerLesson * courseConducted
+                            courseConducted: eventsCount.length,
+                            price: resource.pricePerLesson * eventsCount.length
                         };
                     }
                     return resource;
@@ -251,27 +251,28 @@ const MyCalendar = () => {
             }
         })
         setResources(newArray);
-    }, [events,dataIndex]);
+    }, [events, dataIndex]);
     const handleCloseModal = () => {
         setResourceId(null)
         setAttendedModal(false)
         setDeleteModal(false)
+        setSelectedDays([])
+        setEventAddModal(false)
     };
-    const handleAddEvent = () => {
-        const daysWeek = selectedDays.map((e) => {
-            return e.value
-        })
+    const handleAddEvent = (text, attend) => {
         let newEvents = [...events]
-        const days = getDays({month: selectedDate.month, year: selectedDate.year, daysOfWeek: daysWeek})
-        for (let i = 0; i < days.length; i++) {
-            newEvents = [...newEvents, {
-                resourceId: resourceId, start: days[i], attended: false, color: '#fcdb03', id: uuidv4()
-            }]
-        }
+        newEvents = [...newEvents, {
+            resourceId: resourceId,
+            start: eventDay,
+            attended: attend === 'yes',
+            color: '#fcdb03',
+            id: uuidv4(),
+            title: text
+        }]
         setEvents(newEvents)
         setSelectedDays([])
         setResourceId(null)
-
+        setAttendedModal(false)
     }
     const handleDateSet = (dateInfo) => {
         const startDate = dateInfo.startStr
@@ -279,7 +280,7 @@ const MyCalendar = () => {
             setDataIndex(0)
         } else if (startDate === '2024-03-01T00:00:00Z') {
             setDataIndex(1)
-        }else {
+        } else {
             setDataIndex(3)
         }
         setSelectedDate({
@@ -290,16 +291,13 @@ const MyCalendar = () => {
     const closeModal = () => {
         setResourceId(null)
         setSelectedDays([])
+        setEventAddModal(false)
+        setAttendedModal(false)
     }
     const handleEventClick = (eventInfo) => {
         const {event: {_def}} = eventInfo
-        const {extendedProps: {attended, eventId}} = _def
         setClickedEventId(_def.publicId)
-        if (!_def.title.endsWith('yesisNotWork')) {
-            setAttendedModal(true)
-        } else {
-            setDeleteModal(true)
-        }
+        setDeleteModal(true)
     }
     const findEventByPublicId = (title, attend) => {
         const cusTitle = title + attend + 'isNotWork'
@@ -342,14 +340,37 @@ const MyCalendar = () => {
     const closeDeleteModal = () => {
         setDeleteModal(false)
     }
+    const handleSelect = arg => {
+        const exist = events.find((e) => e.start === arg.startStr && e.resourceId == arg.resource._resource.id)
+        if (!exist) {
+            setEventDay(arg.startStr)
+            setResourceId(arg.resource._resource.id)
+            setAttendedModal(true)
+        }
+    };
+    const getAllSelectedDays = ()=>{
+        const daysWeek = selectedDays.map((e) => {
+            return e.value
+        })
+        const days = getDays({month: selectedDate.month, year: selectedDate.year, daysOfWeek: daysWeek})
+        const allDays = [...days]
+        if (!selectedResources.includes(resourceId)){
+            setSelectedResources([...selectedResources , resourceId])
+        }
+        setResourceId('')
+        setEventAddModal(false)
+    }
     return (<>
             <div id='calendar'>
                 <FullCalendar
                     slotLabelFormat={{
-                        weekday:"short",
+                        weekday: "short",
+                    }}
+                    dayCellContent={() =>{
+                        console.log(9)
                     }}
                     ref={calendarRef}
-                    plugins={[resourceTimelinePlugin, dayGridPlugin]}
+                    plugins={[resourceTimelinePlugin, dayGridPlugin, interactionPlugin]}
                     timeZone='UTC'
                     aspectRatio={1.5}
                     initialView='resourceTimelineMonth'
@@ -360,19 +381,20 @@ const MyCalendar = () => {
                     resources={dataIndex === 0 || dataIndex === 1 ? resources[dataIndex] : []}
                     resourceAreaWidth={'60%'}
                     events={events}
-                    eventClassNames='custom-event'
                     eventTextColor='#000'
                     datesSet={handleDateSet}
+                    selectable={true}
+                    select={handleSelect}
                     eventClick={handleEventClick}
                     eventContent={(renderProps, createElement) => renderEventContent(renderProps, createElement)}
                 />
             </div>
-            {resourceId && (<div className='overlay' onClick={handleCloseModal}>
-                <AddEventModal closeModal={closeModal} handleAddEvent={handleAddEvent} selectedDays={selectedDays}
+            {(resourceId && eventAddModal) && (<div className='overlay' onClick={handleCloseModal}>
+                <AddEventModal closeModal={closeModal} handleAddEvent={getAllSelectedDays} selectedDays={selectedDays}
                                setSelectedDays={setSelectedDays}/>
             </div>)}
             {attendedModal && <div className='overlay' onClick={handleCloseModal}>
-                <AddAttendedModal setAttendedModal={setAttendedModal} onAttend={findEventByPublicId}/>
+                <AddAttendedModal closeModal={closeModal} handleAddEvent={handleAddEvent}/>
             </div>}
             {
                 deleteModal && (<div className='overlay' onClick={handleCloseModal}>
