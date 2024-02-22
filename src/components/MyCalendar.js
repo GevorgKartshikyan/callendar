@@ -13,7 +13,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 
 const MyCalendar = () => {
     const [selectedDaysRender, setSelectedDaysRender] = useState([])
-    const [selectedResources ,setSelectedResources] = useState([])
+    const [selectedResources, setSelectedResources] = useState([])
     const [eventAddModal, setEventAddModal] = useState('')
     const [eventDay, setEventDay] = useState('')
     const resourceAreaColumns = [
@@ -348,42 +348,71 @@ const MyCalendar = () => {
             setAttendedModal(true)
         }
     };
-    const getAllSelectedDays = ()=>{
+    const getAllSelectedDays = () => {
         const daysWeek = selectedDays.map((e) => {
             return e.value
         })
         const days = getDays({month: selectedDate.month, year: selectedDate.year, daysOfWeek: daysWeek})
         const allDays = [...days]
-        if (!selectedResources.includes(resourceId)){
-            setSelectedResources([...selectedResources , resourceId])
+        const daysInMonth = allDays.map(function(date_str) {
+            let parts = date_str.split('-');
+            let day = parseInt(parts[2]);
+            return day - 1;
+        });
+        if (!selectedResources.includes(resourceId)) {
+            setSelectedResources([...selectedResources, resourceId])
         }
+        const bigElement = document.querySelectorAll('.fc-timeline-body')[0]
+        const tr = bigElement.querySelector(`td[data-resource-id="${resourceId}"]`);
+        if (tr){
+            const div = tr.querySelector('.fc-timeline-events')
+            for (let i=0;i < daysInMonth.length;i++){
+                const newDiv = document.createElement('div');
+                newDiv.className = 'fc-timeline-event-harness';
+                newDiv.style = `top: 0px; left:${daysInMonth[i] * 62}px; right: ${(daysInMonth[i]+1) * -62}px;`;
+                newDiv.innerHTML = `
+            <a  tabindex="0" class="fc-event fc-event-start fc-event-end fc-event-past fc-timeline-event fc-h-event" style="border-color: rgb(252, 219, 3); background-color: rgb(252, 219, 3); z-index: -100000">
+              <div class="fc-event-main" style="color: rgb(0, 0, 0);">
+                <div style="background-color: #ebde34; min-height: 25px; overflow: hidden; color: rgb(255, 255, 255);"></div>
+              </div>
+            </a>
+          `;
+                div.appendChild(newDiv)
+            }
+        }
+        setSelectedDays([])
         setResourceId('')
         setEventAddModal(false)
     }
     return (<>
             <div id='calendar'>
                 <FullCalendar
+                    dayCellContent={(arg) => {
+                        console.log(arg);
+                    }}
                     slotLabelFormat={{
                         weekday: "short",
-                    }}
-                    dayCellContent={() =>{
-                        console.log(9)
+                        day: 'numeric'
                     }}
                     ref={calendarRef}
-                    plugins={[resourceTimelinePlugin, dayGridPlugin, interactionPlugin]}
+                    plugins={[dayGridPlugin, interactionPlugin, resourceTimelinePlugin]}
                     timeZone='UTC'
                     aspectRatio={1.5}
                     initialView='resourceTimelineMonth'
                     headerToolbar={{
                         right: 'today prev,next', center: 'title', left: null
                     }}
+                    schedulerLicenseKey='CC-Attribution-NonCommercial-NoDerivatives'
                     resourceAreaColumns={resourceAreaColumns}
                     resources={dataIndex === 0 || dataIndex === 1 ? resources[dataIndex] : []}
-                    resourceAreaWidth={'60%'}
+                    resourceAreaWidth={'50%'}
                     events={events}
                     eventTextColor='#000'
                     datesSet={handleDateSet}
                     selectable={true}
+                    dateClick={(arg) => {
+                        console.log(arg)
+                    }}
                     select={handleSelect}
                     eventClick={handleEventClick}
                     eventContent={(renderProps, createElement) => renderEventContent(renderProps, createElement)}
