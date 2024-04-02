@@ -11,10 +11,53 @@ import renderEventContent from "./EventRender";
 import DeleteEventModal from "./DeleteEventModal";
 import interactionPlugin from '@fullcalendar/interaction'
 
+function getNextCompactMonth() {
+    const today = new Date();
+    let year = today.getFullYear();
+    let month = today.getMonth() + 1;
+
+    if (month === 12) {
+        month = 1;
+        year++;
+    } else {
+        month++;
+    }
+
+    return year + "-" + (month < 10 ? "0" : "") + month;
+}
+
+const nextCompactMonth = getNextCompactMonth();
+
+function getNextMonth(dateString) {
+    let parts = dateString.split('-');
+    let year = parseInt(parts[0]);
+    let month = parseInt(parts[1]);
+    month++;
+    if (month === 13) {
+        year++;
+        month = 1;
+    }
+    let formattedMonth = month < 10 ? '0' + month : month.toString();
+    return year + '-' + formattedMonth;
+}
+
+function compareMonths(month1, month2) {
+    const [year1, monthNum1] = month1.split('-');
+    const [year2, monthNum2] = month2.split('-');
+    const month1Int = parseInt(monthNum1);
+    const month2Int = parseInt(monthNum2);
+    if (year1 !== year2) {
+        return parseInt(year1) > parseInt(year2);
+    }
+    return month1Int > month2Int;
+}
+
+
 const MyCalendar = () => {
-    const [selectedDaysRender, setSelectedDaysRender] = useState([])
-    const [selectedResources, setSelectedResources] = useState([])
-    const [eventAddModal, setEventAddModal] = useState('')
+    const [finalyDays, setFinalyDays] = useState(JSON.parse(localStorage.getItem('finalyDays')) || [])
+    const [selectedMonth, setSelectedMonth] = useState(nextCompactMonth)
+    const [daysForUse, setDaysForUse] = useState(JSON.parse(localStorage.getItem('daysForUse')) || [])
+    const [eventAddModal, setEventAddModal] = useState(false)
     const [eventDay, setEventDay] = useState('')
     const resourceAreaColumns = [
         {
@@ -35,7 +78,8 @@ const MyCalendar = () => {
                     style={{
                         width: 20,
                         height: 20,
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        objectFit:'cover'
                     }}
                     alt='icon'
                     src='https://cdn-icons-png.flaticon.com/512/3652/3652191.png'
@@ -94,19 +138,9 @@ const MyCalendar = () => {
     })
     const [resourceId, setResourceId] = useState(null)
     const [resources, setResources] = useState(
+        JSON.parse(window.localStorage.getItem('resources')) ||
         [
-            [{
-                id: 1,
-                courseId: 1,
-                name: 'Գագիկ Պողոսյան',
-                course: '',
-                paid: '',
-                courseRemaining: '',
-                teacherMoney: '',
-                pricePerLesson: 1500,
-                courseConducted: 0,
-                price: '',
-            },
+            [
                 {
                     id: 2,
                     courseId: 2,
@@ -117,8 +151,22 @@ const MyCalendar = () => {
                     teacherMoney: '',
                     pricePerLesson: 2000,
                     courseConducted: 0,
-                    price: ''
-                },
+                    price: '',
+                    date: '2024-04'
+                }, {
+                id: 1,
+                courseId: 1,
+                name: 'Գագիկ Պողոսյան',
+                course: '',
+                paid: '',
+                courseRemaining: '',
+                teacherMoney: '',
+                pricePerLesson: 1500,
+                courseConducted: 0,
+                price: '',
+                date: '2024-04'
+
+            },
                 {
                     id: 3,
                     courseId: 3,
@@ -129,7 +177,8 @@ const MyCalendar = () => {
                     teacherMoney: '',
                     pricePerLesson: 1800,
                     courseConducted: 0,
-                    price: ''
+                    price: '',
+                    date: '2024-04'
                 },
                 {
                     id: 4,
@@ -141,7 +190,8 @@ const MyCalendar = () => {
                     teacherMoney: '',
                     pricePerLesson: 2200,
                     courseConducted: 0,
-                    price: ''
+                    price: '',
+                    date: '2024-04'
                 },
                 {
                     id: 5,
@@ -153,7 +203,8 @@ const MyCalendar = () => {
                     teacherMoney: '',
                     pricePerLesson: 1700,
                     courseConducted: 0,
-                    price: ''
+                    price: '',
+                    date: '2024-04'
                 },
                 {
                     id: 'total',
@@ -163,7 +214,7 @@ const MyCalendar = () => {
                     courseRemaining: 0,
                     teacherMoney: 0,
                     courseConducted: 0,
-                    price: 0
+                    price: 0,
                 }],
             [{
                 id: 6,
@@ -175,7 +226,8 @@ const MyCalendar = () => {
                 teacherMoney: '',
                 pricePerLesson: 4260,
                 courseConducted: 0,
-                price: ''
+                price: '',
+                date: '2024-05'
             },
                 {
                     id: 7,
@@ -187,7 +239,8 @@ const MyCalendar = () => {
                     teacherMoney: '',
                     pricePerLesson: 2250,
                     courseConducted: 0,
-                    price: ''
+                    price: '',
+                    date: '2024-05'
                 }, {
                 id: 'total',
                 name: 'Ընդհանուր',
@@ -198,65 +251,112 @@ const MyCalendar = () => {
                 courseConducted: 0,
                 price: 0
             }]])
-    const [selectedDays, setSelectedDays] = useState([])
-    const [events, setEvents] = useState([])
+    const [selectedDays, setSelectedDays] = useState(JSON.parse(window.localStorage.getItem('selectedDays')) || [])
+    const [events, setEvents] = useState(JSON.parse(window.localStorage.getItem('events')) || [])
     const [attendedModal, setAttendedModal] = useState(false)
     const [clickedEventId, setClickedEventId] = useState(null)
     const [deleteModal, setDeleteModal] = useState(false)
-
     useEffect(() => {
-        let count = 0
         const newArray = resources.map((innerArray, index) => {
+            let count = 0;
             if (index === dataIndex) {
-                const updatedResources = innerArray.map(resource => {
+                const updatedResources = innerArray.map((resource, index) => {
                     const course = courses.find(course => course.id === resource.courseId);
+                    const prevResource = resources[dataIndex - 1];
+                    let isPrev = false;
+
+                    if (prevResource) {
+                        prevResource.forEach(prev => {
+                            const eventsCount = events.filter(event =>
+                                +event.resourceId === +prev.id && prev.date === event.start.slice(0, 7) && resource.id === prev.id
+                            );
+                            if (eventsCount.length > 0) {
+                                isPrev = true;
+                            }
+                        });
+                    }
+                    const allEventsCount = events.filter(event => +event.resourceId === resource.id);
+                    const isNextEventsCount = events.filter(event =>
+                        +event.resourceId === +resource.id && resource.date !== event.start.slice(0, 7) && !compareMonths(selectedMonth, event.start.slice(0, 7))
+                    ).length
                     if (course) {
-                        count++
-                        const eventsCount = events.filter(event => event.resourceId == resource.id);
-                        const teacherMoney = course.teachMoney * eventsCount.length;
+                        count++;
+                        const eventsCount = events.filter(event =>
+                            +event.resourceId === +resource.id && resource.date === event.start.slice(0, 7)
+                        );
+                        const prevEventsCount = events.filter(event =>
+                            prevResource && prevResource.some(prev => +event.resourceId === +prev.id)
+                        );
+                        const teacherMoney = isPrev && prevEventsCount.length > 0 ? '' : resource.pricePerLesson * course.quantity;
                         return {
                             ...resource,
                             course: course.title,
                             paid: course.paid ? '✔' : '✕',
-                            courseRemaining: course.quantity - eventsCount.length,
+                            courseRemaining: (course.quantity - allEventsCount.length) + isNextEventsCount || "0",
                             teacherMoney: teacherMoney,
                             courseConducted: eventsCount.length,
-                            price: resource.pricePerLesson * eventsCount.length
+                            price: resource.pricePerLesson * eventsCount.length,
                         };
                     }
                     return resource;
                 });
-                let teacherTotalMoney = 0
-                let totalCourseRemaining = 0
-                let totalCourseConducted = 0
-                let totalPrice = 0
-                for (let i = 0; i < updatedResources.length - 1; i++) {
-                    if (updatedResources.id !== 'total') {
-                        teacherTotalMoney += +updatedResources[i].teacherMoney
-                        totalCourseRemaining += +updatedResources[i].courseRemaining
-                        totalCourseConducted += +updatedResources[i].courseConducted
-                        totalPrice += +updatedResources[i].price
+
+                let teacherTotalMoney = 0;
+                let totalCourseRemaining = 0;
+                let totalCourseConducted = 0;
+                let totalPrice = 0;
+                let totalPricePerLesson = 0;
+                updatedResources.forEach(updatedResource => {
+                    if (updatedResource.id !== 'total') {
+                        teacherTotalMoney += +updatedResource.teacherMoney;
+                        totalCourseRemaining += +updatedResource.courseRemaining;
+                        totalCourseConducted += +updatedResource.courseConducted;
+                        totalPrice += +updatedResource.price;
+                        totalPricePerLesson += +updatedResource.pricePerLesson
                     }
-                }
+                });
+
                 const totalResourceIndex = updatedResources.findIndex(resource => resource.id === 'total');
-                updatedResources[totalResourceIndex].teacherMoney = teacherTotalMoney
-                updatedResources[totalResourceIndex].courseRemaining = totalCourseRemaining
-                updatedResources[totalResourceIndex].courseConducted = totalCourseConducted
-                updatedResources[totalResourceIndex].price = totalPrice
-                updatedResources[totalResourceIndex].course = count
-                updatedResources[totalResourceIndex].paid = count
-                return updatedResources
+                updatedResources[totalResourceIndex].teacherMoney = teacherTotalMoney;
+                updatedResources[totalResourceIndex].courseRemaining = totalCourseRemaining;
+                updatedResources[totalResourceIndex].courseConducted = totalCourseConducted;
+                updatedResources[totalResourceIndex].price = totalPrice;
+                updatedResources[totalResourceIndex].course = count;
+                updatedResources[totalResourceIndex].paid = count;
+                updatedResources[totalResourceIndex].pricePerLesson = totalPricePerLesson;
+                return updatedResources;
             } else {
-                return innerArray
+                return innerArray;
             }
-        })
+        });
+        newArray.forEach((innerArray, index) => {
+            if (index === dataIndex) {
+                innerArray.forEach((e) => {
+                    if (+e.courseRemaining > 0) {
+                        if (Array.isArray(newArray[dataIndex + 1])) {
+                            if (!newArray[dataIndex + 1].some(obj => obj.id === e.id)) {
+                                newArray[dataIndex + 1].push({
+                                    ...e,
+                                    date: index < 1 ? selectedMonth : getNextMonth(selectedMonth),
+                                });
+                            }
+                        } else {
+                            newArray[dataIndex + 1] = [{...e}];
+                        }
+                    } else {
+                        newArray[dataIndex + 1] = newArray[dataIndex + 1].filter(obj => obj.id !== e.id);
+                    }
+                });
+            }
+        });
         setResources(newArray);
-    }, [events, dataIndex]);
+        window.localStorage.setItem('resources', JSON.stringify(newArray))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [events, dataIndex, selectedMonth]);
     const handleCloseModal = () => {
         setResourceId(null)
         setAttendedModal(false)
         setDeleteModal(false)
-        setSelectedDays([])
         setEventAddModal(false)
     };
     const handleAddEvent = (text, attend) => {
@@ -267,21 +367,29 @@ const MyCalendar = () => {
             attended: attend === 'yes',
             color: '#fcdb03',
             id: uuidv4(),
-            title: text
+            title: text,
+            dataIndex
         }]
         setEvents(newEvents)
-        setSelectedDays([])
+        window.localStorage.setItem('events', JSON.stringify(newEvents))
         setResourceId(null)
         setAttendedModal(false)
     }
     const handleDateSet = (dateInfo) => {
         const startDate = dateInfo.startStr
-        if (startDate === '2024-02-01T00:00:00Z') {
+        setSelectedMonth(startDate.slice(0, 7))
+        if (startDate === '2024-04-01T00:00:00Z') {
             setDataIndex(0)
-        } else if (startDate === '2024-03-01T00:00:00Z') {
+        } else if (startDate === '2024-05-01T00:00:00Z') {
             setDataIndex(1)
-        } else {
+        } else if (startDate === '2024-06-01T00:00:00Z') {
+            setDataIndex(2)
+        } else if (startDate === '2024-07-01T00:00:00Z') {
             setDataIndex(3)
+        } else if (startDate === '2024-08-01T00:00:00Z') {
+            setDataIndex(4)
+        } else if (startDate === '2024-09-01T00:00:00Z') {
+            setDataIndex(5)
         }
         setSelectedDate({
             month: new Date(startDate).getMonth() + 1, year: new Date(startDate).getFullYear()
@@ -290,7 +398,6 @@ const MyCalendar = () => {
     //
     const closeModal = () => {
         setResourceId(null)
-        setSelectedDays([])
         setEventAddModal(false)
         setAttendedModal(false)
     }
@@ -299,97 +406,158 @@ const MyCalendar = () => {
         setClickedEventId(_def.publicId)
         setDeleteModal(true)
     }
-    const findEventByPublicId = (title, attend) => {
-        const cusTitle = title + attend + 'isNotWork'
-        const calendarApi = calendarRef.current.getApi();
-        const allEvents = calendarApi.getEvents();
-        const event = allEvents.filter((e) => e._def.publicId === clickedEventId)
-        event.map((e) => {
-            e._def.title = cusTitle
-            return e
-        })
-        const newEvents = events.map((e) => {
-            if (e.id === clickedEventId) {
-                if (attend === 'yes') {
-                    e.attended = true
-                }
-                e.title = cusTitle
-            }
-            return e
-        })
-        setEvents(newEvents)
-        setAttendedModal(false)
-        // const updateResources = resources.map((e) => {
-        //     events.forEach((event) => {
-        //         if (event.resourceId == e.id) {
-        //             if (event.attended && event.id === clickedEventId) {
-        //                 e.courseConducted += 1
-        //                 return;
-        //             }
-        //         }
-        //     })
-        //     return e
-        // })
-        // setResources(updateResources)
-    };
+
+
+    useEffect(() => {
+        if (calendarRef.current) {
+            const calendarApi = calendarRef.current.getApi();
+            calendarApi.setOption('dayCellContent')
+        }
+    }, []);
+    // const findEventByPublicId = (title, attend) => {
+    //     const cusTitle = title + attend + 'isNotWork'
+    //     const calendarApi = calendarRef.current.getApi();
+    //     const allEvents = calendarApi.getEvents();
+    //     const event = allEvents.filter((e) => e._def.publicId === clickedEventId)
+    //     event.map((e) => {
+    //         e._def.title = cusTitle
+    //         return e
+    //     })
+    //     const newEvents = events.map((e) => {
+    //         if (e.id === clickedEventId) {
+    //             if (attend === 'yes') {
+    //                 e.attended = true
+    //             }
+    //             e.title = cusTitle
+    //         }
+    //         return e
+    //     })
+    //     setEvents(newEvents)
+    //     window.localStorage.setItem('events', JSON.stringify(newEvents))
+    //     setAttendedModal(false)
+    //     // const updateResources = resources.map((e) => {
+    //     //     events.forEach((event) => {
+    //     //         if (event.resourceId == e.id) {
+    //     //             if (event.attended && event.id === clickedEventId) {
+    //     //                 e.courseConducted += 1
+    //     //                 return;
+    //     //             }
+    //     //         }
+    //     //     })
+    //     //     return e
+    //     // })
+    //     // setResources(updateResources)
+    // };
     const deleteEvent = () => {
         const newEvents = events.filter((e) => e.id !== clickedEventId)
         setEvents(newEvents)
+        window.localStorage.setItem('events', JSON.stringify(newEvents))
         setDeleteModal(false)
     }
     const closeDeleteModal = () => {
         setDeleteModal(false)
     }
     const handleSelect = arg => {
-        const exist = events.find((e) => e.start === arg.startStr && e.resourceId == arg.resource._resource.id)
-        if (!exist) {
+        const remaining = arg.resource._resource.extendedProps.courseRemaining
+        const exist = events.find((e) => e.start === arg.startStr && +e.resourceId === +arg.resource._resource.id)
+        if (!exist && +remaining > 0 && arg.resource._resource.id !== 'total') {
             setEventDay(arg.startStr)
             setResourceId(arg.resource._resource.id)
             setAttendedModal(true)
         }
     };
-    const getAllSelectedDays = () => {
-        const daysWeek = selectedDays.map((e) => {
-            return e.value
-        })
-        const days = getDays({month: selectedDate.month, year: selectedDate.year, daysOfWeek: daysWeek})
-        const allDays = [...days]
-        const daysInMonth = allDays.map(function(date_str) {
-            let parts = date_str.split('-');
-            let day = parseInt(parts[2]);
-            return day - 1;
+    const getAllSelectedDays = async () => {
+        const updatedSelectedDays = selectedDays.filter(day => day.resourceId === resourceId);
+        const updatedDays = getDays({
+            month: selectedDate.month,
+            year: selectedDate.year,
+            daysOfWeek: updatedSelectedDays.map(day => day.value)
         });
-        if (!selectedResources.includes(resourceId)) {
-            setSelectedResources([...selectedResources, resourceId])
+        await setFinalyDays([...finalyDays, ...updatedDays])
+        localStorage.setItem('finalyDays', JSON.stringify([...finalyDays, ...updatedDays]))
+        const daysInMonth = {
+            days: updatedDays.map(function (date_str) {
+                let parts = date_str.split('-');
+                let day = parseInt(parts[2]);
+                return day - 1;
+            }),
+            resourceId: resourceId,
+            date: selectedMonth
+        };
+
+        let resourceIdFound = false;
+        const updatedDaysForUse = daysForUse.map((day) => {
+            if (day.resourceId === daysInMonth.resourceId) {
+                resourceIdFound = true;
+                return {
+                    ...day,
+                    days: [...daysInMonth.days],
+                    date: selectedMonth
+                };
+            }
+            return day;
+        });
+        if (!resourceIdFound) {
+            updatedDaysForUse.push({
+                resourceId: daysInMonth.resourceId,
+                days: daysInMonth.days,
+                date: selectedMonth
+            });
         }
+        setDaysForUse(updatedDaysForUse);
+        localStorage.setItem('daysForUse', JSON.stringify(updatedDaysForUse))
         const bigElement = document.querySelectorAll('.fc-timeline-body')[0]
         const tr = bigElement.querySelector(`td[data-resource-id="${resourceId}"]`);
-        if (tr){
+        if (tr) {
             const div = tr.querySelector('.fc-timeline-events')
-            for (let i=0;i < daysInMonth.length;i++){
-                const newDiv = document.createElement('div');
-                newDiv.className = 'fc-timeline-event-harness';
-                newDiv.style = `top: 0px; left:${daysInMonth[i] * 62}px; right: ${(daysInMonth[i]+1) * -62}px;`;
-                newDiv.innerHTML = `
+            div.innerHTML = '';
+            for (let i = 0; i < daysInMonth.days.length; i++) {
+                if (dataIndex === 0 && daysInMonth.date === selectedMonth) {
+                    const newDiv = document.createElement('div');
+                    newDiv.className = `fc-timeline-event-harness ${selectedMonth}`;
+                    newDiv.style = `top: 0px; width: 62px; left:${daysInMonth.days[i] * 62}px; right: ${(daysInMonth.days[i] + 1) * -62}px;`;
+                    newDiv.innerHTML = `
+          <a  tabindex="0" class="fc-event fc-event-start fc-event-end fc-event-past fc-timeline-event fc-h-event " style="border-color: rgb(252, 219, 3); background-color: rgb(252, 219, 3); z-index: -100000">
+            <div class="fc-event-main" style="color: rgb(0, 0, 0);">
+              <div style="background-color: #ebde34; min-height: 25px; overflow: hidden; color: rgb(255, 255, 255);"></div>
+            </div>
+          </a>
+        `;
+                    div.appendChild(newDiv)
+                }
+            }
+        }
+        setResourceId('')
+        setEventAddModal(false)
+    }
+    useEffect(() => {
+        const bigElement = document.querySelectorAll('.fc-timeline-body')[0]
+        daysForUse.forEach((e) => {
+            const tr = bigElement.querySelector(`td[data-resource-id="${e.resourceId}"]`);
+            if (tr) {
+                const div = tr.querySelector('.fc-timeline-events')
+                div.innerHTML = ''
+                for (let i = 0; i < e.days.length; i++) {
+                    const newDiv = document.createElement('div');
+                    newDiv.className = `fc-timeline-event-harness`;
+                    newDiv.style = `top: 0px; width: 62px; left:${e.days[i] * 62}px; right: ${(e.days[i] + 1) * -62}px;`;
+                    newDiv.innerHTML = `
             <a  tabindex="0" class="fc-event fc-event-start fc-event-end fc-event-past fc-timeline-event fc-h-event" style="border-color: rgb(252, 219, 3); background-color: rgb(252, 219, 3); z-index: -100000">
               <div class="fc-event-main" style="color: rgb(0, 0, 0);">
                 <div style="background-color: #ebde34; min-height: 25px; overflow: hidden; color: rgb(255, 255, 255);"></div>
               </div>
             </a>
           `;
-                div.appendChild(newDiv)
+                    div.appendChild(newDiv)
+                }
             }
-        }
-        setSelectedDays([])
-        setResourceId('')
-        setEventAddModal(false)
-    }
-    return (<>
+        })
+
+    }, [daysForUse, resourceId, selectedMonth]);
+
+    return (<div>
             <div id='calendar'>
                 <FullCalendar
-                    dayCellContent={(arg) => {
-                        console.log(arg);
-                    }}
                     slotLabelFormat={{
                         weekday: "short",
                         day: 'numeric'
@@ -397,29 +565,31 @@ const MyCalendar = () => {
                     ref={calendarRef}
                     plugins={[dayGridPlugin, interactionPlugin, resourceTimelinePlugin]}
                     timeZone='UTC'
-                    aspectRatio={1.5}
+                    aspectRatio={3.5}
                     initialView='resourceTimelineMonth'
                     headerToolbar={{
                         right: 'today prev,next', center: 'title', left: null
                     }}
+                    resourceOrder={'courseRemaining'}
                     schedulerLicenseKey='CC-Attribution-NonCommercial-NoDerivatives'
                     resourceAreaColumns={resourceAreaColumns}
-                    resources={dataIndex === 0 || dataIndex === 1 ? resources[dataIndex] : []}
+                    resources={resources[dataIndex] || []}
                     resourceAreaWidth={'50%'}
                     events={events}
+                    allDayClassNames={()=>{
+                        console.log(8)
+                    }}
                     eventTextColor='#000'
                     datesSet={handleDateSet}
                     selectable={true}
-                    dateClick={(arg) => {
-                        console.log(arg)
-                    }}
                     select={handleSelect}
                     eventClick={handleEventClick}
                     eventContent={(renderProps, createElement) => renderEventContent(renderProps, createElement)}
                 />
             </div>
             {(resourceId && eventAddModal) && (<div className='overlay' onClick={handleCloseModal}>
-                <AddEventModal closeModal={closeModal} handleAddEvent={getAllSelectedDays} selectedDays={selectedDays}
+                <AddEventModal resourceId={resourceId} closeModal={closeModal} handleAddEvent={getAllSelectedDays}
+                               selectedDays={selectedDays}
                                setSelectedDays={setSelectedDays}/>
             </div>)}
             {attendedModal && <div className='overlay' onClick={handleCloseModal}>
@@ -430,7 +600,12 @@ const MyCalendar = () => {
                     <DeleteEventModal closeDeleteModal={closeDeleteModal} deleteEvent={deleteEvent}/>
                 </div>)
             }
-        </>
+            <button onClick={() => {
+                localStorage.clear()
+                window.location.reload()
+            }}>Clear
+            </button>
+        </div>
 
     )
 };

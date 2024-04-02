@@ -1,5 +1,5 @@
 #calendar {
-  max-width: 1700px;
+  max-width: 1600px;
   margin: 40px auto;
 }
 
@@ -70,6 +70,11 @@ select {
   outline: none;
 }
 
+.taza-klass {
+  background: #ebde34;
+  border: 1px solid black;
+}
+
 .btns-block {
   display: flex;
   justify-content: center;
@@ -95,6 +100,14 @@ select {
 
 .fc-direction-ltr .fc-timeline-event.fc-event-end, .fc-direction-ltr .fc-timeline-more-link {
   margin-right: 0;
+}
+
+.fc .fc-highlight {
+  background: transparent !important;
+}
+
+.hidden {
+  display: none;
 }
 
 /*# sourceMappingURL=style.css.map */

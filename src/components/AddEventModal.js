@@ -1,6 +1,6 @@
 import React from 'react';
 
-function AddEventModal({selectedDays, setSelectedDays,handleAddEvent,closeModal}) {
+function AddEventModal({resourceId, selectedDays, setSelectedDays, handleAddEvent, closeModal}) {
     const daysOfWeek = [
         {id: 1, label: 'Երկուշաբթի', value: 'Monday'},
         {id: 2, label: 'Երեքշաբթի', value: 'Tuesday'},
@@ -12,13 +12,20 @@ function AddEventModal({selectedDays, setSelectedDays,handleAddEvent,closeModal}
     ];
     const handleDayChange = (event) => {
         const selectedOption = daysOfWeek.find(day => day.value === event.target.value);
-        const index = selectedDays.findIndex(day => day.value === selectedOption.value);
+        const index = selectedDays.findIndex(day => day.value === selectedOption.value && +resourceId === +day.resourceId);
         if (index === -1) {
-            setSelectedDays([...selectedDays, {value: selectedOption.value, label: selectedOption.label}]);
+            setSelectedDays([...selectedDays, {value: selectedOption.value, label: selectedOption.label, resourceId}]);
+            window.localStorage.setItem('selectedDays', JSON.stringify([...selectedDays, {
+                value: selectedOption.value,
+                label: selectedOption.label,
+                resourceId
+            }]))
+
         }
     }
     const handleDeleteDay = (day) => {
         setSelectedDays(selectedDays.filter((e) => e.value !== day))
+        window.localStorage.setItem('selectedDays', JSON.stringify(selectedDays.filter((e) => e.value !== day)))
     }
     return (
         <div className='modal' onClick={(e) => e.stopPropagation()}>
@@ -33,15 +40,16 @@ function AddEventModal({selectedDays, setSelectedDays,handleAddEvent,closeModal}
                 </select>
                 <div className='selected-days'>
                     {selectedDays.map((e) => (
-                        <button key={e.label} className='selected-day-block'>
+                        +e.resourceId === +resourceId ? <button key={e.label} className='selected-day-block'>
                             <span onClick={() => handleDeleteDay(e.value)} className='delet-btn'>x</span>
                             <span>{e.label}</span>
-                        </button>
+                        </button> : null
                     ))}
                 </div>
                 <div className='btns-block'>
                     <button onClick={handleAddEvent} className='save-close-btn'>Պահպանել</button>
-                    <button onClick={closeModal} style={{background: '#D9534F'}} className='save-close-btn'>Փակել</button>
+                    <button onClick={closeModal} style={{background: '#D9534F'}} className='save-close-btn'>Փակել
+                    </button>
                 </div>
             </div>
         </div>
